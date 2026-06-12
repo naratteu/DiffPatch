@@ -21,26 +21,17 @@ namespace DiffPatch
                     lineIndex = chunk.RangeInfo.NewRange.StartLine - 1; // zero-index the start line 
 
                 foreach (LineDiff lineDiff in chunk.Changes)
-                {
                     if (lineDiff.Add)
                     {
                         dstLines.Insert(lineIndex, lineDiff.Content);
                         lineIndex++;
                     }
                     else if (lineDiff.Delete)
-                    {
                         dstLines.RemoveAt(lineIndex);
-                    }
                     else if (lineDiff.Normal)
-                    {
                         lineIndex++;
-                    }
-                }
-
             }
-
-            string patchString = string.Join(lineEnding, dstLines.ToArray());
-            return patchString;
+            return string.Join(lineEnding, dstLines.ToArray());
         }
     }
 }
