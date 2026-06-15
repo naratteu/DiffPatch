@@ -23,23 +23,22 @@ namespace DiffPatch
         private int oldStart, newStart;
         private int oldLines, newLines;
 
-        private readonly HandlerCollection schema;
+        private readonly List<HandlerRow> schema;
 
         public DiffParser()
         {
-            schema = new HandlerCollection
+            schema = new()
             {
-                    { @"^diff\s", Start },
-                    { @"^new file mode \d+$", NewFile },
-                    { @"^deleted file mode \d+$", DeletedFile },
-                    { @"^index\s[\da-zA-Z]+\.\.[\da-zA-Z]+(\s(\d+))?$", Index },
-                    { @"^---\s", FromFile },
-                    { @"^\+\+\+\s", ToFile },
-                    { @"^@@\s+\-(\d+),?(\d+)?\s+\+(\d+),?(\d+)?\s@@", Chunk },
-                    { @"^-", DeleteLine },
-                    { @"^\+", AddLine },
-                    { @"^Binary files (.+) and (.+) differ", BinaryDiff }
-
+                new(@"^diff\s", Start),
+                new(@"^new file mode \d+$", NewFile),
+                new(@"^deleted file mode \d+$", DeletedFile),
+                new(@"^index\s[\da-zA-Z]+\.\.[\da-zA-Z]+(\s(\d+))?$", Index),
+                new(@"^---\s", FromFile),
+                new(@"^\+\+\+\s", ToFile),
+                new(@"^@@\s+\-(\d+),?(\d+)?\s+\+(\d+),?(\d+)?\s@@", Chunk),
+                new(@"^-", DeleteLine),
+                new(@"^\+", AddLine),
+                new(@"^Binary files (.+) and (.+) differ", BinaryDiff),
             };
         }
 
@@ -209,36 +208,18 @@ namespace DiffPatch
             public Regex Expression { get; }
 
             public Action<string, Match> Action { get; }
-        }
 
-        private class HandlerCollection : IEnumerable<HandlerRow>
-        {
-            private List<HandlerRow> handlers = new List<HandlerRow>();
-
-            public void Add(string expression, Action action)
-            {
-                handlers.Add(new HandlerRow(new Regex(expression), (line, m) => action()));
+            public HandlerRow(string expression, Action action)
+            : this(new Regex(expression), (line, m) => action()) {
             }
 
-            public void Add(string expression, Action<string> action)
-            {
-                handlers.Add(new HandlerRow(new Regex(expression), (line, m) => action(line)));
+            public HandlerRow(string expression, Action<string> action)
+            : this(new Regex(expression), (line, m) => action(line)) {
             }
 
-            public void Add(string expression, Action<string, Match> action)
-            {
-                handlers.Add(new HandlerRow(new Regex(expression), action));
-            }
-
-            public IEnumerator<HandlerRow> GetEnumerator()
-            {
-                return handlers.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return handlers.GetEnumerator();
-            }
+            public HandlerRow(string expression, Action<string, Match> action)
+            : this(new Regex(expression), action) {
+             }
         }
     }
 }
